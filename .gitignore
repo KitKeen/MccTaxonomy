@@ -1,0 +1,12 @@
+# MccTaxonomy
+
+.idea/
+bin/
+obj/
+*.user
+*.suo
+*.nupkg
+*.snupkg
+
+# Internal notes
+PUBLISH_STEPS.md

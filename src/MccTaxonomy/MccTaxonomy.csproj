@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net9.0;net8.0;net6.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- NuGet package metadata -->
+    <PackageId>MccTaxonomy</PackageId>
+    <Version>2.0.0</Version>
+    <Authors>Pavel Kuraev</Authors>
+    <Description>O(1) MCC code to merchant category lookup for .NET. Maps ~900 Merchant Category Codes (ISO 18245) into 27 human-readable categories. Thread-safe, zero-allocation array-based lookup, highly extensible.</Description>
+    <PackageTags>mcc;merchant-category-code;fintech;payments;iso-18245;taxonomy</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/KitKeen/MccTaxonomy</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/KitKeen/MccTaxonomy</PackageProjectUrl>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>
