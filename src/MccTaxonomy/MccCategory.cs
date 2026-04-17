@@ -4,8 +4,19 @@ namespace MccTaxonomy;
 /// Merchant Category Code (MCC) categories based on ISO 18245.
 /// Groups ~900 individual MCC codes into 27 human-readable categories.
 /// </summary>
+/// <remarks>
+/// <see cref="Uncategorized"/> is explicitly pinned to <c>0</c> so that the
+/// default value of the enum (which is also the default element of a
+/// <see cref="MccCategory"/> array) represents "not matched by any known
+/// category". The remaining values are assigned in the order of declaration
+/// but their numeric values must be treated as implementation details and
+/// must not be relied on externally.
+/// </remarks>
 public enum MccCategory
 {
+    /// <summary>MCC code not matched by any known category.</summary>
+    Uncategorized = 0,
+
     /// <summary>Advertising and marketing agencies.</summary>
     Marketing,
 
@@ -80,7 +91,4 @@ public enum MccCategory
 
     /// <summary>Utility providers and telecommunications.</summary>
     Utilities,
-
-    /// <summary>MCC code not matched by any known category.</summary>
-    Uncategorized,
 }

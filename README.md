@@ -2,7 +2,7 @@
 
 O(1) MCC code → merchant category lookup for .NET.
 
-Maps ~1,100 [Merchant Category Codes](https://en.wikipedia.org/wiki/Merchant_category_code) (ISO 18245) into 27 human-readable categories. Backed by a fixed-size array indexed by the numeric MCC value — thread-safe, zero-allocation after initialization, no external dependencies.
+Maps ~900 [Merchant Category Codes](https://en.wikipedia.org/wiki/Merchant_category_code) (ISO 18245) into 27 human-readable categories. Backed by a fixed-size array indexed by the numeric MCC value — thread-safe, zero-allocation after initialization, no external dependencies.
 
 ## Install
 
@@ -17,7 +17,7 @@ dotnet add package MccTaxonomy
 ```csharp
 using MccTaxonomy;
 
-// By integer (recommended)
+// By integer — fastest path (recommended for hot loops)
 MccCategory category = MccLookup.Categorize(5411);
 // => MccCategory.Supermarkets
 
@@ -25,9 +25,16 @@ MccCategory category = MccLookup.Categorize(5411);
 MccCategory category = MccLookup.Categorize("5411");
 // => MccCategory.Supermarkets
 
-// Returns MccCategory.Uncategorized for unknown codes, never throws
-MccCategory unknown = MccLookup.Categorize(9999);
-// => MccCategory.Uncategorized
+// By ReadOnlySpan<char> — allocation-free string overload
+MccCategory category = MccLookup.Categorize("5411".AsSpan());
+// => MccCategory.Supermarkets
+
+// Tolerant of bad input: null, empty, non-digits, too long, unknown codes
+// all return MccCategory.Uncategorized — never throws.
+MccLookup.Categorize(9999);    // => Uncategorized (unknown code)
+MccLookup.Categorize((string?)null); // => Uncategorized
+MccLookup.Categorize(" 5411"); // => Uncategorized (non-digit — strict 1–4 digit parser)
+MccLookup.Categorize("54111"); // => Uncategorized (too long)
 ```
 
 ### Try-pattern
@@ -38,6 +45,9 @@ if (MccLookup.TryGetCategory(5812, out var cat))
 
 if (MccLookup.TryGetCategory("5812", out var cat))
     Console.WriteLine(cat); // FoodAndDining
+
+if (MccLookup.TryGetCategory("5812".AsSpan(), out var cat))
+    Console.WriteLine(cat); // FoodAndDining — zero allocations
 ```
 
 ### Get all codes in a category
@@ -67,20 +77,72 @@ If your use case includes MCC codes not covered by the built-in taxonomy, or you
 ```csharp
 IMccLookup custom = MccLookup.WithCustomCodes(new Dictionary<int, MccCategory>
 {
-    [9999] = MccCategory.Finance,   // add a missing code
-    [5411] = MccCategory.Retail,    // override an existing one
+    [9999] = MccCategory.Finance,         // add a missing code
+    [5411] = MccCategory.Retail,          // override an existing one
+    [7011] = MccCategory.Uncategorized,   // remove a built-in code
 });
 
 custom.Categorize(9999); // => MccCategory.Finance
+custom.Categorize(7011); // => MccCategory.Uncategorized
+custom.TryGetCategory(7011, out _); // => false
 
 // The built-in default is never modified
 MccLookup.Categorize(9999); // => MccCategory.Uncategorized
+
+// Keys outside [0, 9999] throw ArgumentOutOfRangeException —
+// so typos like 12345 are caught up-front rather than silently ignored.
+MccLookup.WithCustomCodes(new Dictionary<int, MccCategory> { [12345] = MccCategory.Finance });
+// => throws ArgumentOutOfRangeException
 
 // Custom instances can be chained
 IMccLookup extended = custom.WithCustomCodes(new Dictionary<int, MccCategory>
 {
     [1234] = MccCategory.Construction,
 });
+```
+
+## Performance
+
+Backing the lookup by a fixed-size `MccCategory[]` indexed by the numeric MCC
+value keeps the hot path branchless and cache-friendly. There is no hashing, no
+probing and no allocation after the type is loaded.
+
+Measured with [BenchmarkDotNet](https://benchmarkdotnet.org/) on Apple M2 Pro,
+.NET 8.0.24, server GC. Each call iterates a mixed workload of 30 representative
+MCC codes × 128 repeats (3840 lookups per invocation):
+
+| Method                                    |       Mean | Ratio | Allocated |
+| ----------------------------------------- | ---------: | ----: | --------: |
+| `Dictionary<int, MccCategory>.TryGetValue` (baseline) |  12.27 µs |  1.00 |    0 B    |
+| `MccLookup.Categorize(int)`               |   3.23 µs |  0.26 |    0 B    |
+| `MccLookup.Categorize(string)`            |  13.04 µs |  1.06 |    0 B    |
+| `MccLookup.Categorize(ReadOnlySpan<char>)` | 12.95 µs |  1.06 |    0 B    |
+
+Per-call cost on this machine is **≈0.84 ns for the int overload** (≈4× faster
+than a `Dictionary<int, MccCategory>`) and ≈3.4 ns for the string/span
+overloads — the extra cost there is the strict 1–4 digit parse, not the lookup
+itself. All four methods allocate zero bytes per call.
+
+`GetCodes` / `GetCodeValues` are O(N) in the number of codes in the requested
+category (not O(10 000)) thanks to a pre-built per-category index:
+
+| Method              | Category      | Codes |      Mean |   Allocated |
+| ------------------- | ------------- | ----: | --------: | ----------: |
+| `GetCodeValues`     | Supermarkets  |     9 |    16 ns  |     32 B    |
+| `GetCodeValues`     | Retail        |    58 |   113 ns  |     32 B    |
+| `GetCodeValues`     | Accommodation |   342 |   678 ns  |     32 B    |
+| `GetCodes` (string) | Supermarkets  |     9 |   119 ns  |    344 B    |
+| `GetCodes` (string) | Retail        |    58 |   684 ns  |  1 912 B    |
+| `GetCodes` (string) | Accommodation |   342 | 3 944 ns  | 11 000 B    |
+
+The 32 B figure for `GetCodeValues` is the enumerator object from iterating an
+`IEnumerable<int>` — the backing data itself is cached. `GetCodes` also allocates
+one 4-char string per code (as documented).
+
+Reproduce with:
+
+```bash
+dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 ```
 
 ## Categories
@@ -740,7 +802,6 @@ IMccLookup extended = custom.WithCustomCodes(new Dictionary<int, MccCategory>
 | 4215 | Courier Services–Air and Ground, Freight Forwarders |
 | 4225 | Public Warehousing–Farm Products, Refrigerated Goods, Household Goods Storage |
 | 4411 | Cruise Lines |
-| 4415 | Jetstar Airways |
 | 4457 | Boat Leases and Boat Rentals |
 | 4468 | Marinas, Marine Service/Supplies |
 | 4511 | Air Carriers, Airlines–not elsewhere classified |
@@ -1036,10 +1097,6 @@ IMccLookup extended = custom.WithCustomCodes(new Dictionary<int, MccCategory>
 | 9752 | UK Petrol Stations, Electronic Hot File |
 | 9754 | Gambling-Horse, Dog Racing, State Lottery |
 | 9950 | Intra-Company Purchases |
-
-> [!NOTE]
-> This library provides full range coverage for Airlines (3000–3350), Vehicle Rental (3351–3439), and Accommodation (3501–3839). Even if a specific provider is not listed by name in the table above, any valid MCC within these ranges will be correctly categorized by the library.
-
 </details>
 ## Why
 
@@ -1047,7 +1104,9 @@ Every fintech that processes card transactions needs MCC categorization. This pa
 
 ## Requirements
 
-- .NET Standard 2.0 or later (.NET 6, .NET 8, .NET 9 explicitly tested)
+- .NET Standard 2.0 or later (.NET 6, .NET 8, .NET 9 explicitly tested).
+- On netstandard2.0 targets, `System.Memory` is pulled in transitively to
+  supply `ReadOnlySpan<char>`. On .NET 6+ there are no transitive dependencies.
 
 ## License
 

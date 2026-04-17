@@ -24,4 +24,9 @@
     <None Include="../../README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
+  <!-- ReadOnlySpan<char> is not available in netstandard2.0 BCL; pull it in via System.Memory. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+  </ItemGroup>
+
 </Project>

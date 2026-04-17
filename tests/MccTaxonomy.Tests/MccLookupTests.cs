@@ -48,9 +48,63 @@ public class MccLookupTests
     }
 
     [Fact]
-    public void Categorize_String_Null_ThrowsArgumentNullException()
+    public void Categorize_String_Null_ReturnsUncategorized()
     {
-        Assert.Throws<ArgumentNullException>(() => MccLookup.Categorize(null!));
+        // Null is treated as "unknown input" — consistent with the tolerant policy
+        // of the rest of the string/span API (no exceptions for malformed input).
+        Assert.Equal(MccCategory.Uncategorized, MccLookup.Categorize((string?)null));
+    }
+
+    [Fact]
+    public void TryGetCategory_String_Null_ReturnsFalse()
+    {
+        Assert.False(MccLookup.TryGetCategory((string?)null, out var category));
+        Assert.Equal(MccCategory.Uncategorized, category);
+    }
+
+    [Theory]
+    [InlineData(" 5411")]   // leading whitespace
+    [InlineData("5411 ")]   // trailing whitespace
+    [InlineData("+5411")]   // sign
+    [InlineData("-1")]      // negative
+    [InlineData("54A1")]    // non-digit
+    [InlineData("54111")]   // too long
+    [InlineData("")]        // empty
+    public void Categorize_String_Malformed_ReturnsUncategorized(string input)
+    {
+        Assert.Equal(MccCategory.Uncategorized, MccLookup.Categorize(input));
+        Assert.False(MccLookup.TryGetCategory(input, out _));
+    }
+
+    // -------------------------------------------------------------------------
+    // Categorize(ReadOnlySpan<char>)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Categorize_Span_KnownCode_ReturnsExpectedCategory()
+    {
+        Assert.Equal(MccCategory.Supermarkets, MccLookup.Categorize("5411".AsSpan()));
+        Assert.Equal(MccCategory.Supermarkets, MccLookup.Categorize("05411".AsSpan(1, 4)));
+    }
+
+    [Fact]
+    public void Categorize_Span_LeadingZero_ResolvesCorrectly()
+    {
+        Assert.Equal(MccLookup.Categorize(742), MccLookup.Categorize("0742".AsSpan()));
+    }
+
+    [Fact]
+    public void Categorize_Span_Empty_ReturnsUncategorized()
+    {
+        Assert.Equal(MccCategory.Uncategorized, MccLookup.Categorize(ReadOnlySpan<char>.Empty));
+    }
+
+    [Fact]
+    public void TryGetCategory_Span_KnownCode_ReturnsTrueAndCategory()
+    {
+        var found = MccLookup.TryGetCategory("5411".AsSpan(), out var category);
+        Assert.True(found);
+        Assert.Equal(MccCategory.Supermarkets, category);
     }
 
     [Fact]
@@ -253,6 +307,44 @@ public class MccLookupTests
     {
         Assert.Throws<ArgumentNullException>(() =>
             MccLookup.WithCustomCodes(null!));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(10_000)]
+    [InlineData(int.MaxValue)]
+    public void WithCustomCodes_OutOfRangeKey_Throws(int invalidCode)
+    {
+        var overrides = new Dictionary<int, MccCategory> { [invalidCode] = MccCategory.Finance };
+        Assert.Throws<ArgumentOutOfRangeException>(() => MccLookup.WithCustomCodes(overrides));
+    }
+
+    [Fact]
+    public void WithCustomCodes_SetUncategorized_RemovesExistingCode()
+    {
+        // 5411 is a built-in Supermarkets code; overriding with Uncategorized removes it.
+        var custom = MccLookup.WithCustomCodes(new Dictionary<int, MccCategory>
+        {
+            [5411] = MccCategory.Uncategorized,
+        });
+
+        Assert.Equal(MccCategory.Uncategorized, custom.Categorize(5411));
+        Assert.False(custom.TryGetCategory(5411, out _));
+        Assert.Equal(MccLookup.Count - 1, custom.Count);
+    }
+
+    // -------------------------------------------------------------------------
+    // Enum stability — Uncategorized is pinned to 0
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Uncategorized_IsPinnedToZero()
+    {
+        // Lookup presence tracking does not depend on this anymore (a parallel
+        // bool[] is used), but the enum value is part of the public API and
+        // downstream code may rely on `default(MccCategory) == Uncategorized`.
+        Assert.Equal(0, (int)MccCategory.Uncategorized);
+        Assert.Equal(MccCategory.Uncategorized, default(MccCategory));
     }
 
     // -------------------------------------------------------------------------
