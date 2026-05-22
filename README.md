@@ -1,8 +1,8 @@
-# MccTaxonomy
+﻿# MccTaxonomy
 
 O(1) MCC code → merchant category lookup for .NET.
 
-Maps ~900 [Merchant Category Codes](https://en.wikipedia.org/wiki/Merchant_category_code) (ISO 18245) into 27 human-readable categories. Backed by a fixed-size array indexed by the numeric MCC value — thread-safe, zero-allocation after initialization, no external dependencies.
+Maps ~900 [Merchant Category Codes](https://en.wikipedia.org/wiki/Merchant_category_code) (ISO 18245) into 27 human-readable categories. Backed by a fixed-size array indexed by the numeric MCC value - thread-safe, zero-allocation after initialization, no external dependencies.
 
 ## Install
 
@@ -17,23 +17,23 @@ dotnet add package MccTaxonomy
 ```csharp
 using MccTaxonomy;
 
-// By integer — fastest path (recommended for hot loops)
+// By integer - fastest path (recommended for hot loops)
 MccCategory category = MccLookup.Categorize(5411);
 // => MccCategory.Supermarkets
 
-// By string — leading zeros handled correctly ("0742" == 742)
+// By string - leading zeros handled correctly ("0742" == 742)
 MccCategory category = MccLookup.Categorize("5411");
 // => MccCategory.Supermarkets
 
-// By ReadOnlySpan<char> — allocation-free string overload
+// By ReadOnlySpan<char> - allocation-free string overload
 MccCategory category = MccLookup.Categorize("5411".AsSpan());
 // => MccCategory.Supermarkets
 
 // Tolerant of bad input: null, empty, non-digits, too long, unknown codes
-// all return MccCategory.Uncategorized — never throws.
+// all return MccCategory.Uncategorized - never throws.
 MccLookup.Categorize(9999);    // => Uncategorized (unknown code)
 MccLookup.Categorize((string?)null); // => Uncategorized
-MccLookup.Categorize(" 5411"); // => Uncategorized (non-digit — strict 1–4 digit parser)
+MccLookup.Categorize(" 5411"); // => Uncategorized (non-digit - strict 1-4 digit parser)
 MccLookup.Categorize("54111"); // => Uncategorized (too long)
 ```
 
@@ -47,7 +47,7 @@ if (MccLookup.TryGetCategory("5812", out var cat))
     Console.WriteLine(cat); // FoodAndDining
 
 if (MccLookup.TryGetCategory("5812".AsSpan(), out var cat))
-    Console.WriteLine(cat); // FoodAndDining — zero allocations
+    Console.WriteLine(cat); // FoodAndDining - zero allocations
 ```
 
 ### Get all codes in a category
@@ -89,7 +89,7 @@ custom.TryGetCategory(7011, out _); // => false
 // The built-in default is never modified
 MccLookup.Categorize(9999); // => MccCategory.Uncategorized
 
-// Keys outside [0, 9999] throw ArgumentOutOfRangeException —
+// Keys outside [0, 9999] throw ArgumentOutOfRangeException -
 // so typos like 12345 are caught up-front rather than silently ignored.
 MccLookup.WithCustomCodes(new Dictionary<int, MccCategory> { [12345] = MccCategory.Finance });
 // => throws ArgumentOutOfRangeException
@@ -120,7 +120,7 @@ MCC codes × 128 repeats (3840 lookups per invocation):
 
 Per-call cost on this machine is **≈0.84 ns for the int overload** (≈4× faster
 than a `Dictionary<int, MccCategory>`) and ≈3.4 ns for the string/span
-overloads — the extra cost there is the strict 1–4 digit parse, not the lookup
+overloads - the extra cost there is the strict 1-4 digit parse, not the lookup
 itself. All four methods allocate zero bytes per call.
 
 `GetCodes` / `GetCodeValues` are O(N) in the number of codes in the requested
@@ -136,7 +136,7 @@ category (not O(10 000)) thanks to a pre-built per-category index:
 | `GetCodes` (string) | Accommodation |   342 | 3 944 ns  | 11 000 B    |
 
 The 32 B figure for `GetCodeValues` is the enumerator object from iterating an
-`IEnumerable<int>` — the backing data itself is cached. `GetCodes` also allocates
+`IEnumerable<int>` - the backing data itself is cached. `GetCodes` also allocates
 one 4-char string per code (as documented).
 
 Reproduce with:
@@ -150,22 +150,22 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | Category        | Description                                    | Examples              |
 | --------------- | ---------------------------------------------- | --------------------- |
 | Marketing       | Advertising and Marketing Services             | 7311                  |
-| Airlines        | Airlines and Air Carriers                      | 3000–3350, 4511       |
+| Airlines        | Airlines and Air Carriers                      | 3000-3350, 4511       |
 | Automotive      | Automotive Parts, Dealers and Services         | 5541, 5542, 7538      |
-| VehicleRental   | Car and Vehicle Rental                         | 3351–3439, 7512       |
+| VehicleRental   | Car and Vehicle Rental                         | 3351-3439, 7512       |
 | Charity         | Charitable and Social Service Organizations    | 8398, 8641            |
 | Construction    | Construction, Home Improvement                 | 1520, 5211            |
-| FoodAndDining   | Restaurants, Fast Food and Dining              | 5811–5814             |
-| DirectSales     | Direct Marketing and Catalog Merchants         | 5964–5969             |
+| FoodAndDining   | Restaurants, Fast Food and Dining              | 5811-5814             |
+| DirectSales     | Direct Marketing and Catalog Merchants         | 5964-5969             |
 | Education       | Educational Services and Schools               | 8211, 8220            |
 | Electronics     | Electronics, Computers and Software            | 5045, 5732            |
-| Leisure         | Entertainment, Recreation and Leisure          | 7832, 7941, 7991–7999 |
+| Leisure         | Entertainment, Recreation and Leisure          | 7832, 7941, 7991-7999 |
 | Finance         | Financial Services, Banking and Investment     | 6010, 6012, 6211      |
-| Betting         | Gambling, Casinos and Betting                  | 7800–7802             |
+| Betting         | Gambling, Casinos and Betting                  | 7800-7802             |
 | Government      | Government Services and Agencies               | 9211, 9311            |
 | Supermarkets    | Grocery Stores and Supermarkets                | 5411, 5412, 5499      |
 | Healthcare      | Healthcare, Medical and Dental Services        | 5912, 8011, 8021      |
-| Accommodation   | Hotels, Motels and Lodging                     | 3501–3839, 7011       |
+| Accommodation   | Hotels, Motels and Lodging                     | 3501-3839, 7011       |
 | Insurance       | Insurance Services                             | 6300, 6399            |
 | DigitalServices | Digital Goods, Software and Online Services    | 5815, 5816, 7372      |
 | Retail          | Retail Stores and General Shopping             | 5311, 5691, 5999      |
@@ -174,7 +174,7 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | Transportation  | Transportation, Transit and Shipping           | 4011, 4121, 4411      |
 | TravelAgencies  | Travel Agencies and Tour Operators             | 4722, 4723            |
 | Utilities       | Utilities and Telecommunications               | 4812, 4900            |
-| Uncategorized   | Unrecognized codes                             | —                     |
+| Uncategorized   | Unrecognized codes                             | -                     |
 
 ## Full MCC Reference
 
@@ -186,14 +186,14 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 0742 | Veterinary Services |
 | 0763 | Agricultural Cooperatives |
 | 0780 | Horticultural and Landscaping Services |
-| 1520 | General Contractors–Residential and Commercial |
+| 1520 | General Contractors-Residential and Commercial |
 | 1711 | Air Conditioning, Heating and Plumbing Contractors |
 | 1731 | Electrical Contractors |
 | 1740 | Insulation, Masonry, Plastering, Stonework and Tile Setting Contractors |
 | 1750 | Carpentry Contractors |
 | 1761 | Roofing and Siding, Sheet Metal Work Contractors |
 | 1771 | Concrete Work Contractors |
-| 1799 | Contractors, Special Trade Contractors–not elsewhere classified |
+| 1799 | Contractors, Special Trade Contractors-not elsewhere classified |
 | 2741 | Miscellaneous Publishing and Printing |
 | 2791 | Typesetting, Plate Making and Related Services |
 | 2842 | Sanitation, Polishing and Specialty Cleaning Preparations |
@@ -561,7 +561,7 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 3597 | Riverside Resort and Casino |
 | 3598 | Regent Hotels |
 | 3599 | Pannonia Hotels |
-| 3600 | Saddlebrook Resort–Tampa |
+| 3600 | Saddlebrook Resort-Tampa |
 | 3601 | Tradewinds Resort |
 | 3602 | Hudson Hotel |
 | 3603 | Noahs Hotel (Melbourne) |
@@ -792,19 +792,19 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 3829 | Country Inn By Carlson |
 | 3830 | Park Plaza Hotel |
 | 3831 | Waldorf |
-| 4011 | Railroads–Freight |
-| 4111 | Transportation–Suburban and Local Commuter Passenger, including Ferries |
+| 4011 | Railroads-Freight |
+| 4111 | Transportation-Suburban and Local Commuter Passenger, including Ferries |
 | 4112 | Passenger Railways |
 | 4119 | Ambulance Services |
 | 4121 | Taxicabs and Limousines |
 | 4131 | Bus Lines |
-| 4214 | Motor Freight Carriers,Trucking–Local/Long Distance, Moving and Storage Companies, Local Delivery |
-| 4215 | Courier Services–Air and Ground, Freight Forwarders |
-| 4225 | Public Warehousing–Farm Products, Refrigerated Goods, Household Goods Storage |
+| 4214 | Motor Freight Carriers,Trucking-Local/Long Distance, Moving and Storage Companies, Local Delivery |
+| 4215 | Courier Services-Air and Ground, Freight Forwarders |
+| 4225 | Public Warehousing-Farm Products, Refrigerated Goods, Household Goods Storage |
 | 4411 | Cruise Lines |
 | 4457 | Boat Leases and Boat Rentals |
 | 4468 | Marinas, Marine Service/Supplies |
-| 4511 | Air Carriers, Airlines–not elsewhere classified |
+| 4511 | Air Carriers, Airlines-not elsewhere classified |
 | 4582 | Airports, Airport Terminals, Flying Fields |
 | 4722 | Travel Agencies and Tour Operators |
 | 4723 | Package Tour Operators (Germany Only) |
@@ -818,7 +818,7 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 4821 | Telegraph Services |
 | 4829 | Wire Transfer Money Orders (V, D, G, X) Money Transfer (M) |
 | 4899 | Cable, Satellite, and Other Pay Television and Radio Services |
-| 4900 | Utilities–Electric, Gas, Heating Oil, Sanitary, Water |
+| 4900 | Utilities-Electric, Gas, Heating Oil, Sanitary, Water |
 | 5013 | Motor Vehicle Supplies and New Parts |
 | 5021 | Office and Commercial Furniture |
 | 5039 | Construction Materials Not Elsewhere Classified |
@@ -862,9 +862,9 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 5441 | Candy, Nut and Confectionery Stores |
 | 5451 | Dairy Products Stores |
 | 5462 | Bakeries |
-| 5499 | Miscellaneous Food Stores–Convenience Stores, Markets, Specialty Stores, and Vending Machines |
-| 5511 | Automobile and Truck Dealers–Sales, Service, Repairs, Parts and Leasing |
-| 5521 | Automobile and Truck Dealers–(Used Only)–Sales |
+| 5499 | Miscellaneous Food Stores-Convenience Stores, Markets, Specialty Stores, and Vending Machines |
+| 5511 | Automobile and Truck Dealers-Sales, Service, Repairs, Parts and Leasing |
+| 5521 | Automobile and Truck Dealers-(Used Only)-Sales |
 | 5532 | Automotive Tire Stores |
 | 5533 | Automotive Parts and Accessories Stores |
 | 5541 | Service Stations (With or Without Ancillary Services) |
@@ -874,7 +874,7 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 5571 | Motorcycle Shops and Dealers |
 | 5592 | Motor Home Dealers |
 | 5598 | Snowmobile Dealers |
-| 5599 | Miscellaneous Automotive, Aircraft, and Farm Equipment Dealers–Not Elsewhere Classified |
+| 5599 | Miscellaneous Automotive, Aircraft, and Farm Equipment Dealers-Not Elsewhere Classified |
 | 5611 | Men’s and Boys’ Clothing and Accessories Stores |
 | 5621 | Women’s Ready to Wear Stores |
 | 5631 | Women’s Accessory and Specialty Stores |
@@ -886,7 +886,7 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 5691 | Men’s and Women’s Clothing Stores |
 | 5697 | Alterations, Mending, Seamstresses, Tailors |
 | 5698 | Wig and Toupee Shops |
-| 5699 | Accessory and Apparel Stores–Miscellaneous |
+| 5699 | Accessory and Apparel Stores-Miscellaneous |
 | 5712 | Equipment, Furniture and Home Furnishings Stores (except Appliances) |
 | 5713 | Floor Covering Stores |
 | 5714 | Drapery, Upholstery and Window Coverings Stores |
@@ -894,25 +894,25 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 5719 | Miscellaneous House Furnishing Specialty Shops |
 | 5722 | Household Appliance Stores |
 | 5732 | Electronics Sales |
-| 5733 | Music Stores–Musical Instruments, Pianos and Sheet Music |
+| 5733 | Music Stores-Musical Instruments, Pianos and Sheet Music |
 | 5734 | Computer Software Stores |
 | 5735 | Record Shops |
 | 5811 | Caterers |
 | 5812 | Eating Places and Restaurants |
-| 5813 | Bars, Cocktail Lounges, Discotheques, Nightclubs and Taverns–Drinking Places (Alcoholic Beverages) |
+| 5813 | Bars, Cocktail Lounges, Discotheques, Nightclubs and Taverns-Drinking Places (Alcoholic Beverages) |
 | 5814 | Fast Food Restaurants |
 | 5815 | Digital Goods: Books, Movies, Music |
 | 5816 | Digital Goods: Games |
 | 5817 | Digital Goods: Applications (Excludes Games) |
 | 5818 | Digital Goods: Large Digital Goods Merchant (V) Digital Goods: Multi-Category (M) |
 | 5912 | Drug Stores and Pharmacies |
-| 5921 | Package Stores–Beer, Wine and Liquor |
+| 5921 | Package Stores-Beer, Wine and Liquor |
 | 5931 | Second Hand Stores, Used Merchandise Stores |
-| 5932 | Antique Shops–Sales, Repairs and Restoration Services |
+| 5932 | Antique Shops-Sales, Repairs and Restoration Services |
 | 5933 | Pawn Shops |
 | 5935 | Wrecking and Salvage Yards |
 | 5937 | Antique Reproduction Stores |
-| 5940 | Bicycle Shops–Sales and Service |
+| 5940 | Bicycle Shops-Sales and Service |
 | 5941 | Sporting Goods Stores |
 | 5942 | Book Stores |
 | 5943 | Office, School Supply and Stationery Stores |
@@ -925,45 +925,45 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 5950 | Crystal and Glassware Stores |
 | 5960 | Direct Marketing Insurance Services |
 | 5961 | Mail Order Houses Including Catalog Order Stores |
-| 5962 | Direct Marketing–Travel Related Arrangement Services |
+| 5962 | Direct Marketing-Travel Related Arrangement Services |
 | 5963 | Door-to-Door Sales |
-| 5964 | Direct Marketing–Catalog Merchants |
-| 5965 | Direct Marketing–Combination Catalog and Retail Merchant |
-| 5966 | Direct Marketing–Outbound Telemarketing Merchants |
-| 5967 | Direct Marketing–Inbound Telemarketing Merchants |
-| 5968 | Direct Marketing–Continuity/Subscription Merchants |
-| 5969 | Direct Marketing–Other Direct Marketers–Not Elsewhere Classified |
+| 5964 | Direct Marketing-Catalog Merchants |
+| 5965 | Direct Marketing-Combination Catalog and Retail Merchant |
+| 5966 | Direct Marketing-Outbound Telemarketing Merchants |
+| 5967 | Direct Marketing-Inbound Telemarketing Merchants |
+| 5968 | Direct Marketing-Continuity/Subscription Merchants |
+| 5969 | Direct Marketing-Other Direct Marketers-Not Elsewhere Classified |
 | 5970 | Artist Supply Stores, Craft Shops |
 | 5971 | Art Dealers and Galleries |
-| 5972 | Stamp and Coin Stores–Philatelic and Numismatic Supplies |
+| 5972 | Stamp and Coin Stores-Philatelic and Numismatic Supplies |
 | 5973 | Religious Goods Stores |
 | 5974 | Rubber Stamp Store |
-| 5975 | Hearing Aids–Sales, Service, Supply Stores |
-| 5976 | Orthopedic Goods–Artificial Limb Stores |
+| 5975 | Hearing Aids-Sales, Service, Supply Stores |
+| 5976 | Orthopedic Goods-Artificial Limb Stores |
 | 5977 | Cosmetic Stores |
-| 5978 | Typewriter Stores–Rentals, Sales, Service |
-| 5983 | Fuel Dealers–Coal, Fuel Oil, Liquefied Petroleum, Wood |
+| 5978 | Typewriter Stores-Rentals, Sales, Service |
+| 5983 | Fuel Dealers-Coal, Fuel Oil, Liquefied Petroleum, Wood |
 | 5992 | Florists |
 | 5993 | Cigar Stores and Stands |
 | 5994 | News Dealers and Newsstands |
 | 5995 | Pet Shops, Pet Food and Supplies |
-| 5996 | Swimming Pools–Sales and Supplies |
-| 5997 | Electric Razor Stores–Sales and Service |
+| 5996 | Swimming Pools-Sales and Supplies |
+| 5997 | Electric Razor Stores-Sales and Service |
 | 5998 | Tent and Awning Shops |
 | 5999 | Miscellaneous and Specialty Retail Stores |
-| 6010 | Member Financial Institution–Manual Cash Disbursements |
-| 6011 | Member Financial Institution–Automated Cash Disbursements |
-| 6012 | Member Financial Institution–Merchandise And Services |
-| 6050 | Quasi Cash–Member Financial Institution |
-| 6051 | Quasi Cash–Merchant |
-| 6211 | Securities–Brokers and Dealers |
+| 6010 | Member Financial Institution-Manual Cash Disbursements |
+| 6011 | Member Financial Institution-Automated Cash Disbursements |
+| 6012 | Member Financial Institution-Merchandise And Services |
+| 6050 | Quasi Cash-Member Financial Institution |
+| 6051 | Quasi Cash-Merchant |
+| 6211 | Securities-Brokers and Dealers |
 | 6236 | Aero Servicio Carabobo |
 | 6300 | Insurance Sales, Underwriting and Premiums |
-| 6381 | Insurance–Premiums |
-| 6513 | Real Estate Agents and Managers–Rentals |
-| 6529 | Remote Stored Value Load — Member Financial Institution |
-| 6530 | Remove Stored Value Load — Merchant |
-| 6535 | Value Purchase–Member Financial Institution |
+| 6381 | Insurance-Premiums |
+| 6513 | Real Estate Agents and Managers-Rentals |
+| 6529 | Remote Stored Value Load - Member Financial Institution |
+| 6530 | Remove Stored Value Load - Merchant |
+| 6535 | Value Purchase-Member Financial Institution |
 | 6536 | MoneySend Intracountry |
 | 6537 | MoneySend Intercountry |
 | 6538 | MoneySend Funding |
@@ -971,12 +971,12 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 6540 | POI (Point of Interaction) Funding Transactions (Excluding MoneySend) |
 | 6611 | Overpayments |
 | 6760 | Savings Bonds |
-| 7011 | Lodging–Hotels, Motels, Resorts–not elsewhere classified |
+| 7011 | Lodging-Hotels, Motels, Resorts-not elsewhere classified |
 | 7012 | Timeshares |
 | 7032 | Sporting and Recreational Camps |
 | 7033 | Campgrounds and Trailer Parks |
 | 7210 | Cleaning, Garment and Laundry Services |
-| 7211 | Laundry Services–Family and Commercial |
+| 7211 | Laundry Services-Family and Commercial |
 | 7216 | Dry Cleaners |
 | 7217 | Carpet and Upholstery Cleaning |
 | 7221 | Photographic Studios |
@@ -985,14 +985,14 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 7261 | Funeral Service and Crematories |
 | 7273 | Dating Services |
 | 7276 | Tax Preparation Service |
-| 7277 | Debt, Marriage, Personal–Counseling Services |
+| 7277 | Debt, Marriage, Personal-Counseling Services |
 | 7278 | Buying/Shopping Clubs, Services |
 | 7280 | Hospital Patient-Personal Funds Withdrawal |
 | 7295 | Babysitting Services |
-| 7296 | Clothing Rental–Costumes, Uniforms and Formal Wear |
+| 7296 | Clothing Rental-Costumes, Uniforms and Formal Wear |
 | 7297 | Massage Parlors |
 | 7298 | Health and Beauty Spas |
-| 7299 | Other Services–Not Elsewhere Classified |
+| 7299 | Other Services-Not Elsewhere Classified |
 | 7311 | Advertising Services |
 | 7321 | Consumer Credit Reporting Agencies |
 | 7332 | Blueprinting and Photocopying Services |
@@ -1004,17 +1004,17 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 7361 | Employment Agencies and Temporary Help Services |
 | 7372 | Computer Programming, Data Processing and Integrated System Design Services |
 | 7375 | Information Retrieval Services |
-| 7379 | Computer Maintenance, Repair And Services–Not Elsewhere Classified |
+| 7379 | Computer Maintenance, Repair And Services-Not Elsewhere Classified |
 | 7392 | Consulting, Management and Public Relations Services |
 | 7393 | Detective Agencies, Protective Agencies, Security Services including Armored Cars, Guard Dogs |
 | 7394 | Equipment Rental and Leasing Services, Furniture Rental, Tool Rental |
 | 7395 | Photo Developing, Photofinishing Laboratories |
 | 7399 | Business Services Not Elsewhere Classified |
-| 7512 | Automobile Rental Agency–Not Elsewhere Classified |
+| 7512 | Automobile Rental Agency-Not Elsewhere Classified |
 | 7513 | Truck Rental |
 | 7519 | Motor Home and Recreational Vehicle Rental |
 | 7523 | Automobile Parking Lots and Garages |
-| 7524 | Express Payment Service Merchants–Parking Lots and Garages |
+| 7524 | Express Payment Service Merchants-Parking Lots and Garages |
 | 7531 | Automotive Body Repair Shops |
 | 7534 | Tire Retreading and Repair Shops |
 | 7535 | Automotive Paint Shops |
@@ -1025,7 +1025,7 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 7623 | Air Conditioning and Refrigeration Repair Shops |
 | 7629 | Appliance Repair Shops, Electrical and Small |
 | 7631 | Clock, Jewelry and Watch Repair Shops |
-| 7641 | Furniture–Reupholstery, Repair and Refinishing |
+| 7641 | Furniture-Reupholstery, Repair and Refinishing |
 | 7692 | Welding Repair |
 | 7699 | Miscellaneous Repair Shops and Related Services |
 | 7800 | Government Owned Lottery |
@@ -1033,11 +1033,11 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 7802 | Government-Licensed Horse/Dog Racing |
 | 7829 | Motion Picture and Video Tape Production and Distribution |
 | 7832 | Motion Picture Theaters |
-| 7833 | Express Payment Service — Motion Picture Theater |
+| 7833 | Express Payment Service - Motion Picture Theater |
 | 7841 | DVD/Video Tape Rental Stores |
 | 7911 | Dance Halls, Schools and Studios |
 | 7922 | Theatrical Producers (Except Motion Pictures), Ticket Agencies |
-| 7929 | Bands, Orchestras and Miscellaneous Entertainers– Not Elsewhere Classified |
+| 7929 | Bands, Orchestras and Miscellaneous Entertainers- Not Elsewhere Classified |
 | 7932 | Pool and Billiard Establishments |
 | 7933 | Bowling Alleys |
 | 7941 | Athletic Fields, Commercial Sports, Professional Sports Clubs, Sports Promoters |
@@ -1047,10 +1047,10 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 7994 | Video Game Arcades and Establishments |
 | 7995 | Gambling Transactions Betting (Sportsbook, fantasy, social gaming; when regulated and not covered by other MCCs) (D) |
 | 7996 | Amusement Parks, Carnivals, Circuses, Carnivals, Fortune Tellers |
-| 7997 | Clubs–Country Clubs, Membership (Athletic, Recreation, Sports), Private Golf Courses |
+| 7997 | Clubs-Country Clubs, Membership (Athletic, Recreation, Sports), Private Golf Courses |
 | 7998 | Aquariums, Dolphinariums, Zoos and Seaquariums |
-| 7999 | Recreation Services–Not Elsewhere Classified |
-| 8011 | Doctors–not elsewhere classified |
+| 7999 | Recreation Services-Not Elsewhere Classified |
+| 8011 | Doctors-not elsewhere classified |
 | 8021 | Dentists and Orthodontists |
 | 8031 | Osteopathic Physicians |
 | 8041 | Chiropractors |
@@ -1061,35 +1061,35 @@ dotnet run -c Release --project tests/MccTaxonomy.Benchmarks -- --filter "*"
 | 8050 | Nursing and Personal Care Facilities |
 | 8062 | Hospitals |
 | 8071 | Dental and Medical Laboratories |
-| 8099 | Health Practitioners, Medical Services–Not Elsewhere Classified |
+| 8099 | Health Practitioners, Medical Services-Not Elsewhere Classified |
 | 8111 | Attorneys, Legal Services |
 | 8211 | Schools, Elementary and Secondary |
 | 8220 | Colleges, Universities, Professional Schools and Junior Colleges |
 | 8241 | Schools, Correspondence |
 | 8244 | Schools, Business and Secretarial |
 | 8249 | Schools, Trade and Vocational |
-| 8299 | Schools And Educational Services–Not Elsewhere Classified |
+| 8299 | Schools And Educational Services-Not Elsewhere Classified |
 | 8351 | Child Care Services |
 | 8398 | Organizations, Charitable and Social Service |
-| 8641 | Associations–Civic, Social and Fraternal |
+| 8641 | Associations-Civic, Social and Fraternal |
 | 8651 | Organizations, Political |
 | 8661 | Organizations, Religious |
 | 8675 | Automobile Associations |
-| 8699 | Organizations, Membership–Not Elsewhere Classified |
+| 8699 | Organizations, Membership-Not Elsewhere Classified |
 | 8734 | Testing Laboratories (Non-Medical) |
 | 8743 | Testing Laboratories (Non-Medical) |
 | 8911 | Architectural, Engineering and Surveying Services |
 | 8931 | Accounting, Auditing and Bookkeeping Services |
-| 8999 | Professional Services–Not Elsewhere Classified |
+| 8999 | Professional Services-Not Elsewhere Classified |
 | 9034 | I-Purchasing Pilot |
 | 9211 | Court Costs Including Alimony and Child Support |
 | 9222 | Fines |
 | 9223 | Bail and Bond Payments |
 | 9311 | Tax Payments |
-| 9399 | Government Services–Not Elsewhere Classified |
+| 9399 | Government Services-Not Elsewhere Classified |
 | 9401 | I-Purchasing Pilot |
-| 9402 | Postal Services–Government Only |
-| 9405 | Intra-Government Purchases–Government Only |
+| 9402 | Postal Services-Government Only |
+| 9405 | Intra-Government Purchases-Government Only |
 | 9700 | Automated Referral Service |
 | 9701 | Visa Credential Server |
 | 9702 | GCAS Emergency Services |

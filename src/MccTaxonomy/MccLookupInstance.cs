@@ -1,4 +1,4 @@
-namespace MccTaxonomy;
+﻿namespace MccTaxonomy;
 
 /// <summary>
 /// Array-backed implementation of <see cref="IMccLookup"/>.
@@ -149,7 +149,7 @@ internal sealed class MccLookupInstance : IMccLookup
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Strict MCC parser: accepts 1–4 ASCII digits only. No signs, no whitespace,
+    /// Strict MCC parser: accepts 1-4 ASCII digits only. No signs, no whitespace,
     /// no locale-specific separators. Significantly faster than <c>int.TryParse</c>
     /// on the hot path and available on every target framework (including
     /// netstandard2.0, which does not expose <c>int.TryParse(ReadOnlySpan&lt;char&gt;)</c>).

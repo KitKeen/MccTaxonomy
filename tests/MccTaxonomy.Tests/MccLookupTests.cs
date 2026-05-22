@@ -1,11 +1,11 @@
-using Xunit;
+﻿using Xunit;
 
 namespace MccTaxonomy.Tests;
 
 public class MccLookupTests
 {
     // -------------------------------------------------------------------------
-    // Categorize(string) — existing coverage
+    // Categorize(string) - existing coverage
     // -------------------------------------------------------------------------
 
     [Theory]
@@ -50,7 +50,7 @@ public class MccLookupTests
     [Fact]
     public void Categorize_String_Null_ReturnsUncategorized()
     {
-        // Null is treated as "unknown input" — consistent with the tolerant policy
+        // Null is treated as "unknown input" - consistent with the tolerant policy
         // of the rest of the string/span API (no exceptions for malformed input).
         Assert.Equal(MccCategory.Uncategorized, MccLookup.Categorize((string?)null));
     }
@@ -116,7 +116,7 @@ public class MccLookupTests
     }
 
     // -------------------------------------------------------------------------
-    // Categorize(int) — new int API
+    // Categorize(int) - new int API
     // -------------------------------------------------------------------------
 
     [Theory]
@@ -250,7 +250,7 @@ public class MccLookupTests
     [Fact]
     public void Airlines_Range_CoversFullRange()
     {
-        // 3000–3350 = 351 codes
+        // 3000-3350 = 351 codes
         for (var i = 3000; i <= 3350; i++)
             Assert.Equal(MccCategory.Airlines, MccLookup.Categorize(i));
     }
@@ -258,7 +258,7 @@ public class MccLookupTests
     [Fact]
     public void Hotels_Range_CoversFullRange()
     {
-        // 3501–3839 = 339 codes
+        // 3501-3839 = 339 codes
         for (var i = 3501; i <= 3839; i++)
             Assert.Equal(MccCategory.Accommodation, MccLookup.Categorize(i));
     }
@@ -334,7 +334,7 @@ public class MccLookupTests
     }
 
     // -------------------------------------------------------------------------
-    // Enum stability — Uncategorized is pinned to 0
+    // Enum stability - Uncategorized is pinned to 0
     // -------------------------------------------------------------------------
 
     [Fact]

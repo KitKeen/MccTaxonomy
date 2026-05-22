@@ -1,4 +1,4 @@
-namespace MccTaxonomy;
+﻿namespace MccTaxonomy;
 
 /// <summary>
 /// O(1) lookup from a 4-digit MCC code to its merchant category.
@@ -15,7 +15,7 @@ public static class MccLookup
     private static readonly MccLookupInstance _default = BuildDefault();
 
     // -------------------------------------------------------------------------
-    // Static API (convenience — delegates to the built-in default instance)
+    // Static API (convenience - delegates to the built-in default instance)
     // -------------------------------------------------------------------------
 
     /// <summary>
@@ -29,7 +29,7 @@ public static class MccLookup
         => _default.Categorize(mccCode);
 
     /// <summary>
-    /// Returns the <see cref="MccCategory"/> for a given MCC string (1–4 ASCII digits,
+    /// Returns the <see cref="MccCategory"/> for a given MCC string (1-4 ASCII digits,
     /// leading zeros allowed).
     /// Returns <see cref="MccCategory.Uncategorized"/> if the string is <c>null</c>,
     /// empty, contains non-digit characters, or does not correspond to any recognized code.
@@ -42,7 +42,7 @@ public static class MccLookup
 
     /// <summary>
     /// Returns the <see cref="MccCategory"/> for a given MCC character span
-    /// (1–4 ASCII digits, leading zeros allowed). Allocation-free.
+    /// (1-4 ASCII digits, leading zeros allowed). Allocation-free.
     /// </summary>
     public static MccCategory Categorize(ReadOnlySpan<char> mccCode)
         => _default.Categorize(mccCode);
@@ -118,7 +118,7 @@ public static class MccLookup
     private static MccLookupInstance BuildDefault()
     {
         // MccCategory.Uncategorized is pinned to 0, so default(MccCategory[]) is
-        // already a fully-Uncategorized table — no explicit init loop needed.
+        // already a fully-Uncategorized table - no explicit init loop needed.
         var t = new MccCategory[MccLookupInstance.TableSize];
         var occ = new bool[MccLookupInstance.TableSize];
 

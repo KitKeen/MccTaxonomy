@@ -1,4 +1,4 @@
-namespace MccTaxonomy;
+﻿namespace MccTaxonomy;
 
 /// <summary>
 /// Defines a lookup service that maps numeric MCC codes to merchant categories.
@@ -12,7 +12,7 @@ public interface IMccLookup
     MccCategory Categorize(int mccCode);
 
     /// <summary>
-    /// Returns the <see cref="MccCategory"/> for a given MCC string (1–4 ASCII digits,
+    /// Returns the <see cref="MccCategory"/> for a given MCC string (1-4 ASCII digits,
     /// leading zeros allowed). Returns <see cref="MccCategory.Uncategorized"/> if the
     /// string is <c>null</c>, empty, contains non-digit characters, is longer than
     /// 4 characters, or does not correspond to any recognized code.
@@ -20,7 +20,7 @@ public interface IMccLookup
     MccCategory Categorize(string? mccCode);
 
     /// <summary>
-    /// Returns the <see cref="MccCategory"/> for a given MCC character span (1–4 ASCII digits,
+    /// Returns the <see cref="MccCategory"/> for a given MCC character span (1-4 ASCII digits,
     /// leading zeros allowed). Returns <see cref="MccCategory.Uncategorized"/> if the
     /// span is empty, contains non-digit characters, is longer than 4 characters,
     /// or does not correspond to any recognized code. This overload is allocation-free.
@@ -34,13 +34,13 @@ public interface IMccLookup
     bool TryGetCategory(int mccCode, out MccCategory category);
 
     /// <summary>
-    /// Tries to get the category for a given MCC string (1–4 ASCII digits).
+    /// Tries to get the category for a given MCC string (1-4 ASCII digits).
     /// Returns <c>false</c> if the string is <c>null</c>, malformed, or not present in the taxonomy.
     /// </summary>
     bool TryGetCategory(string? mccCode, out MccCategory category);
 
     /// <summary>
-    /// Tries to get the category for a given MCC character span (1–4 ASCII digits).
+    /// Tries to get the category for a given MCC character span (1-4 ASCII digits).
     /// Returns <c>false</c> if the span is malformed or not present in the taxonomy.
     /// This overload is allocation-free.
     /// </summary>
